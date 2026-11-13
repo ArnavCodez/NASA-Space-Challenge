@@ -90,6 +90,51 @@ export type Stack = {
 
 export type View = 'epoch' | 'diff' | 'raw' | 'sub'
 
+export type SpectrumPoint = {
+  id: string
+  det: string
+  epoch: number
+  mjd: number
+  flux: number
+  err: number
+  wave: number
+  bw: number
+  flags: ('saturated' | 'artifact' | 'partial')[]
+}
+
+export type Spectrum = {
+  ra: number
+  dec: number
+  unit: string
+  aperture: number
+  epochs: Epoch[]
+  total: number
+  failed: number
+  points: SpectrumPoint[]
+}
+
+export type MotionEpoch = {
+  epoch: number
+  label: string
+  mjd: number
+  n_coadd: number
+  wave: number
+  expected: [number, number]
+  east?: number
+  north?: number
+  err?: [number, number]
+  method?: 'fit' | 'core'
+}
+
+export type MotionFit = {
+  det: string
+  fov: number
+  scale: number
+  catalog: { pmra: number; pmdec: number }
+  epochs: MotionEpoch[]
+  fit: { pmra: number; pmdec: number; pmra_err: number; pmdec_err: number; span: number } | null
+}
+
 export type FrameQuery = {
   ra: number
   dec: number
@@ -124,6 +169,19 @@ export async function getFrames(q: FrameQuery, signal?: AbortSignal): Promise<St
   if (!r.ok) await fail(r)
   return decode(await r.arrayBuffer())
 }
+
+const pm = (t: Target) => `pmra=${t.pmra ?? 0}&pmdec=${t.pmdec ?? 0}`
+
+// null means nobody has measured this spot yet (only asked when cachedOnly is set)
+export async function getSpectrum(t: Target, cachedOnly: boolean, signal?: AbortSignal): Promise<Spectrum | null> {
+  const r = await fetch(`/api/spectrum?ra=${t.ra}&dec=${t.dec}&${pm(t)}${cachedOnly ? '&cached=true' : ''}`, { signal })
+  if (r.status === 204) return null
+  if (!r.ok) await fail(r)
+  return r.json()
+}
+
+export const getMotion = (t: Target, det: string, fov: number, signal?: AbortSignal) =>
+  json<MotionFit>(`/api/motion?ra=${t.ra}&dec=${t.dec}&det=${det}&fov=${fov}&${pm(t)}`, signal)
 
 // see backend/app/wire.py for the layout
 export function decode(buf: ArrayBuffer): Stack {

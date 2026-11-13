@@ -418,6 +418,209 @@ footer {
   color: var(--dim);
 }
 
+.col {
+  min-width: 0;
+}
+
+.plots {
+  display: grid;
+  grid-template-columns: minmax(0, 1.7fr) minmax(0, 1fr);
+  gap: 16px;
+  margin-top: 18px;
+  align-items: start;
+}
+
+.plot {
+  padding: 12px 14px 14px;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+}
+
+.plot h3 {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.plot.pending button {
+  margin-top: 4px;
+}
+
+.plot-head {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px 16px;
+  margin-bottom: 8px;
+}
+
+.legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  font-size: 12px;
+}
+
+.legend button,
+.legend span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 8px;
+  font-size: 12px;
+  color: var(--text);
+}
+
+.legend button.off {
+  color: var(--dim);
+}
+
+.legend button.off i {
+  opacity: 0.35;
+}
+
+.legend.static span {
+  padding: 0;
+  color: var(--dim);
+}
+
+.legend i {
+  display: inline-block;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+}
+
+.legend i.ring {
+  border: 1.5px solid;
+}
+
+.plot-box {
+  position: relative;
+}
+
+.plot svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+
+.plot svg.motion {
+  max-width: 340px;
+  margin: 0 auto;
+}
+
+.plot .grid {
+  stroke: var(--line);
+  stroke-width: 1;
+}
+
+.plot .zero {
+  stroke: #4a4d57;
+  stroke-width: 1;
+}
+
+.plot .band {
+  fill: rgba(255, 255, 255, 0.03);
+}
+
+.plot .band-label,
+.plot .tick,
+.plot .axis,
+.plot .point-label {
+  fill: var(--dim);
+  font-size: 11px;
+  font-family: var(--mono);
+}
+
+.plot .band-label {
+  text-anchor: middle;
+}
+
+.plot .point-label {
+  fill: var(--text);
+}
+
+.plot .pixel {
+  fill: none;
+  stroke: var(--dim);
+  stroke-dasharray: 2 2;
+}
+
+.plot .hover-ring {
+  fill: none;
+  stroke: var(--text);
+  stroke-width: 1.5;
+}
+
+.tip {
+  position: absolute;
+  display: grid;
+  gap: 2px;
+  padding: 7px 9px;
+  background: #0b0c0f;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  font-size: 12px;
+  white-space: nowrap;
+  pointer-events: none;
+  z-index: 2;
+}
+
+.tip span {
+  color: var(--dim);
+}
+
+.tip .warn {
+  color: var(--bad);
+}
+
+.plot-foot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 16px;
+  margin-top: 6px;
+  font-size: 12px;
+  color: var(--dim);
+}
+
+.plot-foot .check {
+  margin: 0;
+}
+
+button.link {
+  margin-left: auto;
+  padding: 0;
+  background: none;
+  border: 0;
+  color: var(--accent);
+  font-size: 12px;
+}
+
+button.link:hover:not(:disabled) {
+  background: none;
+  text-decoration: underline;
+}
+
+.motion-text p {
+  margin: 6px 0 0;
+  font-size: 13px;
+}
+
+.motion-text .dim {
+  color: var(--dim);
+}
+
+@media (max-width: 1150px) {
+  .plots {
+    grid-template-columns: 1fr;
+  }
+}
+
 @media (max-width: 900px) {
   main {
     grid-template-columns: 1fr;

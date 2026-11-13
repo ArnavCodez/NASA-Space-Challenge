@@ -1,9 +1,23 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { getFrames, getTargets, search, type Manifest, type Stack, type Target, type View } from './api'
+import {
+  getFrames,
+  getMotion,
+  getSpectrum,
+  getTargets,
+  search,
+  type Manifest,
+  type MotionFit,
+  type Spectrum,
+  type Stack,
+  type Target,
+  type View,
+} from './api'
 import Controls from './components/Controls'
 import FrameInfo from './components/FrameInfo'
+import MotionPlot from './components/MotionPlot'
 import Player from './components/Player'
 import SearchBar from './components/SearchBar'
+import SpectrumPlot from './components/SpectrumPlot'
 import TargetCard from './components/TargetCard'
 import Viewer from './components/Viewer'
 import { dms, hms } from './format'
@@ -48,6 +62,12 @@ export default function App({ embed = false }: { embed?: boolean }) {
   const [showTrack, setShowTrack] = useState(true)
   const [copied, setCopied] = useState('')
   const keepRef = useRef(start.ref !== undefined)
+  const [spectrum, setSpectrum] = useState<Spectrum | null>(null)
+  const [measuring, setMeasuring] = useState(false)
+  const [specError, setSpecError] = useState('')
+  const [motion, setMotion] = useState<MotionFit | null>(null)
+  const current = useRef(target)
+  current.current = target
   const ref = view === 'diff' ? refEpoch : 0
 
   const pick = useCallback((t: Target) => {
@@ -132,6 +152,41 @@ export default function App({ embed = false }: { embed?: boolean }) {
       })
     return () => ctl.abort()
   }, [manifest, det, view, fov, ref])
+
+  // spectra are slow to build, so only show one here if it's already cached; otherwise offer a button
+  useEffect(() => {
+    if (!target) return
+    const ctl = new AbortController()
+    setSpectrum(null)
+    setSpecError('')
+    setMeasuring(false)
+    getSpectrum(target, true, ctl.signal)
+      .then(setSpectrum)
+      .catch(() => {})
+    return () => ctl.abort()
+  }, [target?.ra, target?.dec, target?.pmra])
+
+  function measureSpectrum() {
+    if (!target) return
+    const asked = target
+    setMeasuring(true)
+    setSpecError('')
+    getSpectrum(asked, false)
+      .then((s) => current.current === asked && setSpectrum(s))
+      .catch((e) => current.current === asked && setSpecError(e.message))
+      .finally(() => current.current === asked && setMeasuring(false))
+  }
+
+  const motionKey = target && stack?.meta.n && stack.meta.det === det && stack.meta.fov === fov ? `${target.ra},${target.dec},${det},${fov}` : ''
+  useEffect(() => {
+    setMotion(null)
+    if (!motionKey || !target) return
+    const ctl = new AbortController()
+    getMotion(target, det, fov, ctl.signal)
+      .then(setMotion)
+      .catch(() => {})
+    return () => ctl.abort()
+  }, [motionKey, target?.pmra])
 
   useEffect(() => {
     setSteady(view !== 'raw')
@@ -235,7 +290,29 @@ export default function App({ embed = false }: { embed?: boolean }) {
       </nav>
 
       <main>
-        {stage}
+        <div className="col">
+          {stage}
+          {manifest && manifest.frames.length > 0 && target && (
+            <section className="plots">
+              {spectrum ? (
+                <SpectrumPlot spectrum={spectrum} name={target.name} />
+              ) : (
+                <div className="plot pending">
+                  <h3>Spectrum from every exposure</h3>
+                  <p className="hint">
+                    Measures the target in every SPHEREx exposure on all six detectors, 0.75–5 µm. The first time for a
+                    new spot this reads a few hundred files from IRSA and takes a minute or two.
+                  </p>
+                  <button onClick={measureSpectrum} disabled={measuring}>
+                    {measuring ? 'Measuring…' : 'Measure spectrum'}
+                  </button>
+                  {specError && <p className="error">{specError}</p>}
+                </div>
+              )}
+              {motion && <MotionPlot data={motion} />}
+            </section>
+          )}
+        </div>
 
         <aside>
           {target && <TargetCard target={target} />}
