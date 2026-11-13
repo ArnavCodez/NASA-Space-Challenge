@@ -2,7 +2,7 @@ import hashlib
 import json
 
 import numpy as np
-from astropy.stats import sigma_clip
+from astropy.stats import mad_std, sigma_clip
 from astropy.time import Time
 from astropy.visualization import ZScaleInterval
 
@@ -13,12 +13,17 @@ from .search import search
 
 VIEWS = ("raw", "epoch", "diff", "sub")
 PER_EPOCH = 40  # frames per epoch that go into a co-add; R Dra has hundreds
+VERSION = 2  # bump when the stack output changes so old cached stacks are skipped
 
 
-def limits(image: np.ndarray) -> tuple[float, float]:
+def limits(image: np.ndarray, centered: bool = False) -> tuple[float, float]:
     v = image[np.isfinite(image)]
-    if v.size < 10:
-        return 0.0, 1.0
+    if v.size < 10 or not v.any():
+        return 0.0, 0.0
+    if centered:
+        # residuals of bright stars blow out zscale; scale to the background noise instead
+        s = 5 * mad_std(v)
+        return -float(s), float(s)
     lo, hi = ZScaleInterval().get_limits(v)
     return float(lo), float(hi)
 
@@ -107,7 +112,8 @@ def stack(ra: float, dec: float, fov: int, det: str, view: str, ref: int = 0, of
     else:
         frames = [f for e in sorted({f["epoch"] for f in frames}) for f in thin([x for x in frames if x["epoch"] == e], PER_EPOCH)]
 
-    params = dict(ra=round(ra, 5), dec=round(dec, 5), fov=fov, det=det, view=view, ref=ref, frames=[f["id"] for f in frames])
+    params = dict(v=VERSION, ra=round(ra, 5), dec=round(dec, 5), fov=fov, det=det, view=view, ref=ref,
+                  frames=[f["id"] for f in frames])
     key = hashlib.sha1(json.dumps(params).encode()).hexdigest()[:16] + ".spxf"
     for path in (settings.DEMO_CACHE / "stacks" / key, settings.STACK_CACHE / key):
         if path.exists():
@@ -125,7 +131,7 @@ def stack(ra: float, dec: float, fov: int, det: str, view: str, ref: int = 0, of
     masks = np.stack([o[1] for o in out]) if out else np.zeros((0, n, n), np.uint8)
     metas = []
     for img, _, meta in out:
-        meta["vmin"], meta["vmax"] = limits(img)
+        meta["vmin"], meta["vmax"] = limits(img, centered=view in ("diff", "sub"))
         metas.append(meta)
 
     body = wire.encode({

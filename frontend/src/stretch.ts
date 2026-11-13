@@ -107,14 +107,17 @@ function median(xs: number[]) {
 // zscale limits come from the server per frame; "steady" uses one set for the whole stack
 // so brightness changes between frames stay visible
 export function limitsFor(stack: Stack, index: number, steady: boolean, contrast: number, symmetric: boolean): Limits {
-  const frames = stack.meta.frames
+  // the reference frame of a diff is all zeros; leave it out
+  const frames = stack.meta.frames.filter((f) => f.vmax > f.vmin)
   let lo: number, hi: number
+  if (!frames.length) return { lo: -1, hi: 1 }
   if (steady) {
     lo = median(frames.map((f) => f.vmin))
     hi = median(frames.map((f) => f.vmax))
   } else {
-    lo = frames[index]?.vmin ?? 0
-    hi = frames[index]?.vmax ?? 1
+    const f = stack.meta.frames[index]
+    lo = f && f.vmax > f.vmin ? f.vmin : median(frames.map((x) => x.vmin))
+    hi = f && f.vmax > f.vmin ? f.vmax : median(frames.map((x) => x.vmax))
   }
   const mid = (lo + hi) / 2
   const half = ((hi - lo) / 2) * contrast
