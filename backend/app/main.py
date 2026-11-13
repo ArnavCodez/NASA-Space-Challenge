@@ -3,7 +3,8 @@ import requests
 from fastapi import FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
-from fastapi.responses import Response
+from fastapi.responses import FileResponse, Response
+from fastapi.staticfiles import StaticFiles
 
 from . import coords, measure, settings, views
 from .search import search
@@ -107,3 +108,17 @@ def motion(ra: float, dec: float, det: str = "D3", fov: int = 6, pmra: float = 0
         return measure.motion(ra, dec, det, fov, pmra, pmdec)
     except UPSTREAM_ERRORS as e:
         raise HTTPException(502, f"IRSA request failed: {e}")
+
+
+# the built frontend, when there is one; in dev vite serves it and proxies /api here
+if (settings.STATIC / "index.html").exists():
+    app.mount("/assets", StaticFiles(directory=settings.STATIC / "assets"), name="assets")
+
+    @app.get("/{path:path}", include_in_schema=False)
+    def page(path: str):
+        if path.startswith("api/"):
+            raise HTTPException(404, "no such endpoint")
+        file = (settings.STATIC / path).resolve()
+        if path and file.is_file() and settings.STATIC.resolve() in file.parents:
+            return FileResponse(file)
+        return FileResponse(settings.STATIC / "index.html")

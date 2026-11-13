@@ -5,6 +5,7 @@ ROOT = Path(__file__).resolve().parents[2]
 CONFIG = ROOT / "config"
 CACHE = Path(os.environ.get("BLINK_CACHE", ROOT / "cache"))
 DEMO_CACHE = ROOT / "demo_cache"
+STATIC = Path(os.environ.get("BLINK_STATIC", ROOT / "frontend" / "dist"))
 
 # search results and finished stacks are small; prebake points these at demo_cache
 SEARCH_CACHE = CACHE / "search"
