@@ -10,6 +10,7 @@ DEMO_CACHE = ROOT / "demo_cache"
 SEARCH_CACHE = CACHE / "search"
 STACK_CACHE = CACHE / "stacks"
 CUTOUT_CACHE = CACHE / "cutouts"
+MEASURE_CACHE = CACHE  # spectra/ lives under here
 
 IRSA = "https://irsa.ipac.caltech.edu/"
 TAP_URL = IRSA + "TAP"
