@@ -65,6 +65,7 @@ export default function SpectrumPlot({ spectrum, name }: Props) {
 
   const shown = spectrum.points.filter((p) => showFlagged || !suspect(p))
   const hidden = spectrum.points.length - shown.length
+  const skipped = spectrum.total - spectrum.failed - spectrum.points.length
 
   const [lo, hi] = useMemo(() => {
     const vals = shown.flatMap((p) => [p.flux - p.err, p.flux + p.err]).sort((a, b) => a - b)
@@ -217,6 +218,11 @@ export default function SpectrumPlot({ spectrum, name }: Props) {
           Show flagged points{hidden > 0 && !showFlagged ? ` (${hidden} hidden)` : ''}
         </label>
         {offScale > 0 && <span>{offScale} off scale</span>}
+        {skipped > 0 && (
+          <span title="saturated or blanked at the target, or too close to the detector edge">
+            {skipped} of {spectrum.total} exposures unusable
+          </span>
+        )}
         <button className="link" onClick={download}>
           Download CSV
         </button>
