@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { getFrames, getTargets, search, type Manifest, type Stack, type Target, type View } from './api'
 import Controls from './components/Controls'
 import FrameInfo from './components/FrameInfo'
@@ -47,6 +47,8 @@ export default function App({ embed = false }: { embed?: boolean }) {
   const [smooth, setSmooth] = useState(false)
   const [showTrack, setShowTrack] = useState(true)
   const [copied, setCopied] = useState('')
+  const keepRef = useRef(start.ref !== undefined)
+  const ref = view === 'diff' ? refEpoch : 0
 
   const pick = useCallback((t: Target) => {
     setTarget(t)
@@ -82,6 +84,8 @@ export default function App({ embed = false }: { embed?: boolean }) {
     search(target.ra, target.dec, ctl.signal)
       .then((m) => {
         setManifest(m)
+        if (keepRef.current) keepRef.current = false
+        else setRefEpoch(defaultRef(m, det))
         if (!m.frames.length) {
           setStatus('')
           setError('SPHEREx has not observed this position yet.')
@@ -95,25 +99,26 @@ export default function App({ embed = false }: { embed?: boolean }) {
     return () => ctl.abort()
   }, [target?.ra, target?.dec])
 
-  const [refFromUrl, setRefFromUrl] = useState(start.ref !== undefined)
-  useEffect(() => {
-    if (!manifest) return
-    if (refFromUrl) setRefFromUrl(false)
-    else setRefEpoch(defaultRef(manifest, det))
-  }, [manifest, det])
+  const chooseDet = useCallback(
+    (d: string) => {
+      setDet(d)
+      if (manifest) setRefEpoch(defaultRef(manifest, d))
+    },
+    [manifest],
+  )
 
   useEffect(() => {
     if (!target || !manifest || !manifest.frames.length) return
     const n = manifest.counts[det] ?? 0
     if (!n) {
       const fallback = Object.keys(manifest.counts)[0]
-      if (fallback) setDet(fallback)
+      if (fallback) chooseDet(fallback)
       return
     }
     const ctl = new AbortController()
     setError('')
     setStatus(`Fetching ${det} exposures from IRSA (${n} cover this spot). First load of a view takes 10–60 s.`)
-    getFrames({ ra: target.ra, dec: target.dec, det, view, fov, ref: refEpoch }, ctl.signal)
+    getFrames({ ra: target.ra, dec: target.dec, det, view, fov, ref }, ctl.signal)
       .then((s) => {
         setStack(s)
         setIndex((i) => Math.min(i, Math.max(s.meta.n - 1, 0)))
@@ -126,7 +131,7 @@ export default function App({ embed = false }: { embed?: boolean }) {
         setError(e.message)
       })
     return () => ctl.abort()
-  }, [manifest, det, view, fov, refEpoch])
+  }, [manifest, det, view, fov, ref])
 
   useEffect(() => {
     setSteady(view !== 'raw')
@@ -242,7 +247,7 @@ export default function App({ embed = false }: { embed?: boolean }) {
               setIndex(0)
             }}
             det={det}
-            setDet={setDet}
+            setDet={chooseDet}
             counts={manifest?.counts ?? {}}
             fov={fov}
             setFov={setFov}
