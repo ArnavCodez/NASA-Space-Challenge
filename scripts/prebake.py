@@ -18,7 +18,7 @@ settings.STACK_CACHE = settings.DEMO_CACHE / "stacks"
 
 from app.coords import presets, resolve  # noqa: E402
 from app.search import search  # noqa: E402
-from app.views import stack  # noqa: E402
+from app.views import default_ref, stack  # noqa: E402
 
 
 def main():
@@ -37,7 +37,7 @@ def main():
         for det in args.det or [hit.get("det", "D3")]:
             for view in args.views:
                 t0 = time.time()
-                body = stack(hit["ra"], hit["dec"], fov, det, view, ref=0)
+                body = stack(hit["ra"], hit["dec"], fov, det, view, ref=default_ref(manifest, det))
                 print(f"{hit['name']:16} {det} {view:5} fov={fov}  {len(body) / 1e3:7.0f} KB  {time.time() - t0:5.0f}s"
                       f"  ({len(manifest['frames'])} frames total)", flush=True)
 

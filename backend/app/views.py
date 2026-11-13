@@ -104,8 +104,17 @@ def build(view: str, items: list, epochs: list, ref: int = 0):
     return [(img - base[0], m | base[1], {**meta, "ref": base[2]["epoch"]}) for img, m, meta in stacks]
 
 
+def default_ref(manifest: dict, det: str) -> int:
+    # earliest visit with at least half the exposures of the best one, so the reference isn't mostly noise
+    counts = [e["n"].get(det, 0) for e in manifest["epochs"]]
+    enough = max(counts, default=0) / 2
+    return next((e["id"] for e, n in zip(manifest["epochs"], counts) if n and n >= enough), 0)
+
+
 def stack(ra: float, dec: float, fov: int, det: str, view: str, ref: int = 0, offset: int = 0, limit: int = 120) -> bytes:
     manifest = search(ra, dec)
+    if view != "diff":
+        ref = 0  # only the difference view uses it; keeps the cache key stable
     frames = [f for f in manifest["frames"] if f["det"] == det]
     if view in ("raw", "sub"):
         frames = frames[offset : offset + limit]
