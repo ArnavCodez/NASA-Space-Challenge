@@ -45,6 +45,7 @@ export default function App({ embed = false }: { embed?: boolean }) {
   const [steady, setSteady] = useState(true)
   const [showFlags, setShowFlags] = useState(false)
   const [smooth, setSmooth] = useState(false)
+  const [showTrack, setShowTrack] = useState(true)
   const [copied, setCopied] = useState('')
 
   const pick = useCallback((t: Target) => {
@@ -175,6 +176,7 @@ export default function App({ embed = false }: { embed?: boolean }) {
             cmap={view === 'diff' ? 'diverging' : cmap}
             showFlags={showFlags}
             smooth={smooth}
+            motion={showTrack && target?.pmra !== undefined ? { pmra: target.pmra, pmdec: target.pmdec ?? 0, epoch: target.epoch ?? 2026 } : undefined}
           />
         ) : (
           <div className="empty">{status || error || 'Pick a target to start.'}</div>
@@ -259,6 +261,9 @@ export default function App({ embed = false }: { embed?: boolean }) {
             setShowFlags={setShowFlags}
             smooth={smooth}
             setSmooth={setSmooth}
+            canTrack={Math.hypot(target?.pmra ?? 0, target?.pmdec ?? 0) > 100}
+            showTrack={showTrack}
+            setShowTrack={setShowTrack}
           />
 
           <FrameInfo frame={frame} manifest={manifest} />

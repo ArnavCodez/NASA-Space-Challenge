@@ -40,6 +40,9 @@ type Props = {
   setShowFlags: (s: boolean) => void
   smooth: boolean
   setSmooth: (s: boolean) => void
+  canTrack: boolean
+  showTrack: boolean
+  setShowTrack: (s: boolean) => void
 }
 
 export default function Controls(p: Props) {
@@ -139,6 +142,12 @@ export default function Controls(p: Props) {
           <input type="checkbox" checked={p.smooth} onChange={(e) => p.setSmooth(e.target.checked)} />
           Smooth pixels
         </label>
+        {p.canTrack && (
+          <label className="check">
+            <input type="checkbox" checked={p.showTrack} onChange={(e) => p.setShowTrack(e.target.checked)} />
+            Mark where the catalogue motion puts it <i className="key track" />
+          </label>
+        )}
       </fieldset>
     </div>
   )
