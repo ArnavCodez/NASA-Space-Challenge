@@ -99,7 +99,7 @@ def query_irsa(ra: float, dec: float) -> list[tuple]:
 
 
 def search(ra: float, dec: float, fresh: bool = False) -> dict:
-    path = settings.CACHE / "search" / f"{ra:.4f}_{dec:.4f}.json"
+    path = settings.SEARCH_CACHE / f"{ra:.4f}_{dec:.4f}.json"
     demo = settings.DEMO_CACHE / "search" / path.name
     for p in (path, demo):
         if not fresh and p.exists() and (p == demo or time.time() - p.stat().st_mtime < settings.SEARCH_TTL):

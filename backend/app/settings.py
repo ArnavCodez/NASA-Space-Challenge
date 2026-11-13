@@ -6,6 +6,11 @@ CONFIG = ROOT / "config"
 CACHE = Path(os.environ.get("BLINK_CACHE", ROOT / "cache"))
 DEMO_CACHE = ROOT / "demo_cache"
 
+# search results and finished stacks are small; prebake points these at demo_cache
+SEARCH_CACHE = CACHE / "search"
+STACK_CACHE = CACHE / "stacks"
+CUTOUT_CACHE = CACHE / "cutouts"
+
 IRSA = "https://irsa.ipac.caltech.edu/"
 TAP_URL = IRSA + "TAP"
 

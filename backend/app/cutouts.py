@@ -193,7 +193,7 @@ def read_cutout(uri: str, ra: float, dec: float, half: int) -> dict:
 
 def _cache_path(frame: dict, ra: float, dec: float, half: int):
     key = hashlib.sha1(f"{ra:.5f},{dec:.5f},{half}".encode()).hexdigest()[:10]
-    return settings.CACHE / "cutouts" / f"{frame['id']}_{key}.npz"
+    return settings.CUTOUT_CACHE / f"{frame['id']}_{key}.npz"
 
 
 def _save(path, cut: dict):

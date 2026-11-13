@@ -1,0 +1,46 @@
+"""
+Build the demo cache for the preset targets so the demo never waits on IRSA.
+
+    python scripts/prebake.py              # every preset, default views
+    python scripts/prebake.py "r dra" -d D1 D3 -v epoch raw
+"""
+import argparse
+import sys
+import time
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "backend"))
+
+from app import settings  # noqa: E402
+
+settings.SEARCH_CACHE = settings.DEMO_CACHE / "search"
+settings.STACK_CACHE = settings.DEMO_CACHE / "stacks"
+
+from app.coords import presets, resolve  # noqa: E402
+from app.search import search  # noqa: E402
+from app.views import stack  # noqa: E402
+
+
+def main():
+    p = argparse.ArgumentParser()
+    p.add_argument("targets", nargs="*", help="preset names (default: all)")
+    p.add_argument("-d", "--det", nargs="*", help="detectors (default: the preset's)")
+    p.add_argument("-v", "--views", nargs="*", default=["epoch", "diff", "raw"])
+    p.add_argument("-f", "--fov", type=int, help="field of view in arcmin (default: the preset's)")
+    args = p.parse_args()
+
+    names = args.targets or [t["name"] for t in presets()]
+    for name in names:
+        hit = resolve(name)
+        manifest = search(hit["ra"], hit["dec"])
+        fov = args.fov or hit.get("fov", 6)
+        for det in args.det or [hit.get("det", "D3")]:
+            for view in args.views:
+                t0 = time.time()
+                body = stack(hit["ra"], hit["dec"], fov, det, view, ref=0)
+                print(f"{hit['name']:16} {det} {view:5} fov={fov}  {len(body) / 1e3:7.0f} KB  {time.time() - t0:5.0f}s"
+                      f"  ({len(manifest['frames'])} frames total)", flush=True)
+
+
+if __name__ == "__main__":
+    main()

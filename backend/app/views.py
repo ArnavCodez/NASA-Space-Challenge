@@ -109,7 +109,7 @@ def stack(ra: float, dec: float, fov: int, det: str, view: str, ref: int = 0, of
 
     params = dict(ra=round(ra, 5), dec=round(dec, 5), fov=fov, det=det, view=view, ref=ref, frames=[f["id"] for f in frames])
     key = hashlib.sha1(json.dumps(params).encode()).hexdigest()[:16] + ".spxf"
-    for path in (settings.DEMO_CACHE / "stacks" / key, settings.CACHE / "stacks" / key):
+    for path in (settings.DEMO_CACHE / "stacks" / key, settings.STACK_CACHE / key):
         if path.exists():
             return path.read_bytes()
 
@@ -135,7 +135,7 @@ def stack(ra: float, dec: float, fov: int, det: str, view: str, ref: int = 0, of
     }, images, masks)
 
     if failed == 0:
-        path = settings.CACHE / "stacks" / key
+        path = settings.STACK_CACHE / key
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_bytes(body)
     return body
