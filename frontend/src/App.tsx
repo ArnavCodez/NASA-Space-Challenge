@@ -294,8 +294,16 @@ export default function App({ embed = false }: { embed?: boolean }) {
           {stage}
           {manifest && manifest.frames.length > 0 && target && (
             <section className="plots">
-              {spectrum ? (
+              {spectrum && spectrum.points.length > 0 ? (
                 <SpectrumPlot spectrum={spectrum} name={target.name} />
+              ) : spectrum ? (
+                <div className="plot pending">
+                  <h3>Spectrum from every exposure</h3>
+                  <p className="hint">
+                    None of the {spectrum.total} exposures could be measured: the target is saturated or blanked out at
+                    its centre in all of them. That happens for stars brighter than about 5th magnitude in the infrared.
+                  </p>
+                </div>
               ) : (
                 <div className="plot pending">
                   <h3>Spectrum from every exposure</h3>
