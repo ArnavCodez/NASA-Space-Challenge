@@ -1,0 +1,57 @@
+# J2000 positions and proper motions (mas/yr) from SIMBAD.
+# det/fov are what each preset opens with.
+
+- name: WISE 0855-0714
+  aliases: [wise 0855, wise0855, wise j085510.83-071442.5, w0855]
+  ra: 133.81890825
+  dec: -7.247048
+  pmra: -8123.7
+  pmdec: 673.2
+  plx: 439.0
+  det: D6
+  fov: 3
+  note: Coldest known brown dwarf, about 2.3 pc away. Only shows up at the long-wavelength end.
+
+- name: Barnard's Star
+  aliases: [barnard, barnards star, barnard's, gj 699]
+  ra: 269.45207696
+  dec: 4.69336497
+  pmra: -801.551
+  pmdec: 10362.394
+  plx: 546.976
+  det: D4
+  fov: 6
+  note: Fastest-moving star in the sky, over 10 arcsec a year.
+
+- name: Epsilon Indi B
+  aliases: [eps ind b, epsilon indi, eps indi b, eps ind ba]
+  ra: 331.04414659
+  dec: -56.78284420
+  pmra: 3981.977
+  pmdec: -2466.832
+  plx: 270.658
+  det: D4
+  fov: 6
+  note: A pair of brown dwarfs orbiting the star Epsilon Indi A, about 7 arcmin away.
+
+- name: RW Aurigae
+  aliases: [rw aur]
+  ra: 76.95652603
+  dec: 30.40143817
+  pmra: 7.23
+  pmdec: -20.33
+  plx: 15.42
+  det: D3
+  fov: 6
+  note: Young star with a disk that has been dimming on and off for years.
+
+- name: R Draconis
+  aliases: [r dra]
+  ra: 248.16761083
+  dec: 66.75497942
+  pmra: -20.643
+  pmdec: 6.149
+  plx: 1.251
+  det: D3
+  fov: 6
+  note: Mira variable with a roughly 245 day pulsation period.
