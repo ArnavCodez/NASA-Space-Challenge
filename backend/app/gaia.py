@@ -2,6 +2,7 @@ import hashlib
 import json
 import logging
 import math
+import numpy as np
 import pyvo
 from . import settings
 
@@ -36,8 +37,10 @@ def get_gaia_stars(ra: float, dec: float, fov_arcmin: float, limit: int = 200) -
         tap = pyvo.dal.TAPService(ESA_GAIA_TAP)
         table = tap.search(query).to_table()
         for r in table:
-            pmra = float(r["pmra"]) if r["pmra"] is not None and not math.isnan(float(r["pmra"])) else 0.0
-            pmdec = float(r["pmdec"]) if r["pmdec"] is not None and not math.isnan(float(r["pmdec"])) else 0.0
+            pmra_val = r["pmra"]
+            pmdec_val = r["pmdec"]
+            pmra = float(pmra_val) if pmra_val is not None and pmra_val is not np.ma.masked and not math.isnan(float(pmra_val)) else 0.0
+            pmdec = float(pmdec_val) if pmdec_val is not None and pmdec_val is not np.ma.masked and not math.isnan(float(pmdec_val)) else 0.0
             stars.append({
                 "id": str(r["source_id"]),
                 "ra": float(r["ra"]),

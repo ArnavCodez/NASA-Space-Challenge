@@ -2,6 +2,7 @@ import hashlib
 import json
 import logging
 import math
+import numpy as np
 import pyvo
 from . import settings
 
@@ -35,9 +36,11 @@ def get_neossat_records(ra: float, dec: float, fov_arcmin: float, limit: int = 5
         table = tap.search(query).to_table()
         for r in table:
             obs_id = str(r["obsID"])
-            tgt = str(r["target_name"]) if r["target_name"] is not None else ""
-            t0 = float(r["time_bounds_lower"]) if r["time_bounds_lower"] is not None else None
-            t1 = float(r["time_bounds_upper"]) if r["time_bounds_upper"] is not None else None
+            tgt = str(r["target_name"]) if r["target_name"] is not None and r["target_name"] is not np.ma.masked else ""
+            t0_raw = r["time_bounds_lower"]
+            t1_raw = r["time_bounds_upper"]
+            t0 = float(t0_raw) if t0_raw is not None and t0_raw is not np.ma.masked and not math.isnan(float(t0_raw)) else None
+            t1 = float(t1_raw) if t1_raw is not None and t1_raw is not np.ma.masked and not math.isnan(float(t1_raw)) else None
             records.append({
                 "obs_id": obs_id,
                 "target": tgt,
