@@ -171,7 +171,8 @@ def stack(ra: float, dec: float, fov: int, det: str, view: str, ref: int = 0, of
         "offset": offset, "frames": metas,
     }, images, masks)
 
-    if len(out) > 0:
+    # a failed fetch may just be IRSA having a bad minute, so don't pin a partial stack in the cache
+    if len(out) > 0 and failed == 0:
         path = settings.STACK_CACHE / key
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_bytes(body)
