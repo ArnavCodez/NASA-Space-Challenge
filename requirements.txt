@@ -1,8 +1,8 @@
 # what the Vercel function needs at runtime; backend/requirements.txt adds the dev tools
-fastapi
-numpy
-scipy
-astropy
-pyvo
-requests
-pyyaml
+fastapi>=0.115.0,<1.0.0
+numpy>=2.0.0,<3.0.0
+scipy>=1.14.0,<2.0.0
+astropy>=6.1.0,<9.0.0
+pyvo>=1.5.0,<2.0.0
+requests>=2.31.0,<3.0.0
+pyyaml>=6.0.0,<7.0.0
