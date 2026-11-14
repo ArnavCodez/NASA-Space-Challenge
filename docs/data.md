@@ -14,8 +14,8 @@ Science Archive (IRSA).
   file name (`..._D<n>_spx_...`) and the time from `time_bounds_lower`/`upper`
   (MJD).
 - **Pixels.** Files are read straight from IRSA's `ibe` file server with HTTP
-  `Range` requests. The server allows up to 200 ranges per request, so we send
-  at most 120.
+  `Range` requests. The server answers at most 100 ranges per request (ask for
+  more and it sends the whole file), so we send them in batches of 100.
 
 ## What is in a Level 2 file
 
@@ -41,7 +41,7 @@ Science Archive (IRSA).
 Images stay in MJy/sr. Spectrum points are converted to mJy by multiplying
 by the pixel solid angle, (6.15″)², which is 0.889 mJy per MJy/sr. They are
 plain aperture sums inside 2 pixels (12.3″) with the background taken from a
-4–7 pixel annulus. No aperture correction is applied.
+4 to 7 pixel annulus. No aperture correction is applied.
 
 ## Positions
 
