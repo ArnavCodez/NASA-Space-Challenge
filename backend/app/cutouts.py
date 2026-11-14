@@ -30,7 +30,7 @@ warnings.simplefilter("ignore", FITSFixedWarning)
 log.setLevel("WARNING")
 
 BLOCK = 2880
-MAX_RANGES = 120  # apache gives up on multi-range past 200 and sends the whole file
+MAX_RANGES = 100  # IRSA's apache sends the whole file (200) for more than 100 ranges in one request
 TAIL = 4 * BLOCK
 
 _local = threading.local()
