@@ -13,7 +13,7 @@ from .search import search
 
 VIEWS = ("raw", "epoch", "diff", "sub")
 PER_EPOCH = 8  # optimal frame count per epoch: keeps 3-sigma clipping & coaddition while speeding up download by 4-5x!
-VERSION = 3  # bump when the stack output changes so old cached stacks are skipped
+VERSION = 4  # bump when the stack output changes so old cached stacks are skipped
 
 
 def limits(image: np.ndarray, centered: bool = False) -> tuple[float, float]:
@@ -48,7 +48,7 @@ def coadd(items: list[tuple[dict, dict]]) -> tuple[np.ndarray, np.ndarray, float
     images[(masks & M_TRANSIENT) != 0] = np.nan  # cosmic rays, and anything moving fast
 
     if len(items) >= 4:
-        images = sigma_clip(images, sigma=3, axis=0, masked=True).filled(np.nan)
+        images = sigma_clip(images, sigma=3, axis=0, masked=True, cenfunc="median", stdfunc="mad_std").filled(np.nan)
 
     noise = np.array([max(p["noise"], 1e-6) for _, p in items])
     w = np.where(np.isfinite(images), (1 / noise**2)[:, None, None], 0.0)
@@ -104,7 +104,20 @@ def build(view: str, items: list, epochs: list, ref: int = 0, sort: str = "time"
         return stacks
 
     base = next((s for s in stacks if s[2]["epoch"] == ref), stacks[0])
-    return [(img - base[0], m | base[1], {**meta, "ref": base[2]["epoch"]}) for img, m, meta in stacks]
+    base_wave = base[2].get("wave", 0.0)
+    diff_out = []
+    for img, m, meta in stacks:
+        diff_meta = {**meta, "ref": base[2]["epoch"]}
+        delta_wave = abs(meta.get("wave", 0.0) - base_wave)
+        diff_meta["delta_wave"] = round(delta_wave, 4)
+        if delta_wave > 0.15:
+            diff_meta["wave_warn"] = (
+                f"Δλ = {delta_wave:.2f} µm vs ref e{base[2]['epoch']} "
+                f"({meta.get('wave', 0.0):.2f} vs {base_wave:.2f} µm): "
+                f"color difference may mimic brightness change"
+            )
+        diff_out.append((img - base[0], m | base[1], diff_meta))
+    return diff_out
 
 
 def default_ref(manifest: dict, det: str) -> int:
@@ -120,7 +133,10 @@ def stack(ra: float, dec: float, fov: int, det: str, view: str, ref: int = 0, of
         ref = 0  # only the difference view uses it; keeps the cache key stable
     frames = [f for f in manifest["frames"] if f["det"] == det]
     if view in ("raw", "sub"):
-        frames = frames[offset : offset + limit]
+        if offset == 0 and len(frames) > limit:
+            frames = thin(frames, limit)
+        else:
+            frames = frames[offset : offset + limit]
     else:
         frames = [f for e in sorted({f["epoch"] for f in frames}) for f in thin([x for x in frames if x["epoch"] == e], PER_EPOCH)]
 

@@ -52,6 +52,7 @@ team Skill-Issue (Delhi).
 | R Draconis | D3, 6′ | Mira variable near the north ecliptic pole, so it has many more visits than anything else. |
 | Comet 3I/ATLAS | D4, 6′ | Interstellar comet; reveals volatile sublimation and outgassing across 102 NIR channels. |
 | (1) Ceres | D3, 6′ | Largest asteroid & dwarf planet in the asteroid belt, cross-matched with CSA NEOSSat. |
+| Betelgeuse | D3, 6′ | Red supergiant in Orion, pulsating variable and nearby supernova progenitor. |
 
 ## How it works
 
@@ -67,7 +68,8 @@ browser ──/api/search──► IRSA TAP (spherex.plane + spherex.artifact)
 `spherex.artifact` tables returns every Level 2 spectral image whose footprint
 contains the position. When the same exposure is in more than one release, the
 DR1 version wins over the weekly QR3 one. Exposures are grouped into visits
-wherever there is a gap of more than 30 days.
+wherever there is a gap of more than 30 days, and continuous stretches longer than
+60 days (near the ecliptic poles) get split into separate visits.
 
 **Reading only what we need.** Each Level 2 file is about 70 MB (2040×2040
 image, flags, variance, zodiacal model, PSF cube, wavelength table). Instead of
@@ -79,7 +81,7 @@ matches IRSA's own cutouts pixel for pixel.
 
 **Making the movie.** Each cutout is background-subtracted, then resampled with
 its own WCS onto a common north-up, east-left grid centred on the target.
-Visit stacks are inverse-variance weighted means with 3σ clipping, so cosmic
+Visit stacks are inverse-variance weighted means with robust 3σ MAD clipping, so cosmic
 rays and satellite trails drop out. Every frame keeps its wavelength, which is
 read from the file's spectral WCS at the target position.
 
@@ -88,7 +90,7 @@ format, see `backend/app/wire.py`) so stretch, contrast and colour map change
 instantly without another request.
 
 Everything the backend fetches is cached on disk. `demo_cache/` holds the
-search results, stacks and spectra for the five presets, so they open
+search results, stacks, spectra, Gaia star catalogues, and NEOSSat cross-matches for the presets, so they open
 instantly even if IRSA is slow.
 
 ## Run it
@@ -164,6 +166,8 @@ redeployed. `GET /api/search?ra=..&dec=..&fresh=true` forces a fresh query, and
 This uses data from SPHEREx (Spectro-Photometer for the History of the
 Universe, Epoch of Reionization and Ices Explorer), a NASA mission led by
 Caltech and managed by JPL, served by the NASA/IPAC Infrared Science Archive
-(IRSA). Names are resolved with CDS Sesame (SIMBAD, NED, VizieR). Built with
-Astropy, NumPy, SciPy, PyVO, FastAPI and React. More detail in
+(IRSA). Names are resolved with CDS Sesame (SIMBAD, NED, VizieR). Gaia DR3
+astrometry and proper motions are provided directly by ESA Gaia TAP. NEOSSat
+observations are retrieved from the Canadian Astronomy Data Centre (CADC) Argus TAP.
+Built with Astropy, NumPy, SciPy, PyVO, FastAPI and React. More detail in
 [docs/data.md](docs/data.md).

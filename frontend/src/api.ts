@@ -64,6 +64,8 @@ export type FrameMeta = {
   release?: string
   ref?: number
   flags?: Record<string, number>
+  wave_warn?: string
+  delta_wave?: number
 }
 
 export type StackMeta = {

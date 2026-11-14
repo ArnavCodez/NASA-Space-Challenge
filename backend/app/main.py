@@ -71,7 +71,7 @@ def frames(
     fov: int = 6,
     ref: int = 0,
     offset: int = Query(0, ge=0),
-    limit: int = Query(24, ge=1, le=200),
+    limit: int = Query(24, ge=1, le=60),
     sort: str = Query("time", pattern="^(time|wave)$"),
 ):
     ra, dec = _pos(ra, dec)
@@ -89,13 +89,13 @@ def frames(
 
 
 @app.get("/api/gaia")
-def gaia_stars(ra: float, dec: float, fov: float = 6.0):
+def gaia_stars(ra: float, dec: float, fov: float = Query(6.0, ge=0.5, le=30.0)):
     ra, dec = _pos(ra, dec)
     return gaia.get_gaia_stars(ra, dec, fov)
 
 
 @app.get("/api/neossat")
-def neossat_records(ra: float, dec: float, fov: float = 6.0):
+def neossat_records(ra: float, dec: float, fov: float = Query(6.0, ge=0.5, le=30.0)):
     ra, dec = _pos(ra, dec)
     return neossat.get_neossat_records(ra, dec, fov)
 

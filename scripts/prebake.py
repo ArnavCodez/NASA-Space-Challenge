@@ -16,9 +16,12 @@ from app import settings  # noqa: E402
 settings.SEARCH_CACHE = settings.DEMO_CACHE / "search"
 settings.STACK_CACHE = settings.DEMO_CACHE / "stacks"
 settings.MEASURE_CACHE = settings.DEMO_CACHE
+settings.CACHE = settings.DEMO_CACHE
 
 from app.coords import presets, resolve  # noqa: E402
+from app.gaia import get_gaia_stars  # noqa: E402
 from app.measure import spectrum  # noqa: E402
+from app.neossat import get_neossat_records  # noqa: E402
 from app.search import search  # noqa: E402
 from app.views import default_ref, stack  # noqa: E402
 
@@ -43,6 +46,16 @@ def main():
                 body = stack(hit["ra"], hit["dec"], fov, det, view, ref=default_ref(manifest, det))
                 print(f"{hit['name']:16} {det} {view:5} fov={fov}  {len(body) / 1e3:7.0f} KB  {time.time() - t0:5.0f}s"
                       f"  ({len(manifest['frames'])} frames total)", flush=True)
+        try:
+            g_stars = get_gaia_stars(hit["ra"], hit["dec"], fov)
+            print(f"{hit['name']:16} Gaia: {len(g_stars)} stars cached", flush=True)
+        except Exception as e:
+            print(f"{hit['name']:16} Gaia prebake skipped: {e}", flush=True)
+        try:
+            n_records = get_neossat_records(hit["ra"], hit["dec"], fov)
+            print(f"{hit['name']:16} NEOSSat: {len(n_records)} records cached", flush=True)
+        except Exception as e:
+            print(f"{hit['name']:16} NEOSSat prebake skipped: {e}", flush=True)
         if not args.no_spectrum:
             t0 = time.time()
             spec = spectrum(hit["ra"], hit["dec"], hit.get("pmra") or 0, hit.get("pmdec") or 0)

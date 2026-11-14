@@ -80,7 +80,8 @@ export default function Viewer({
     }
 
     if (showGaia && gaiaStars.length > 0) {
-      drawGaia(ctx, nx, scale, stack.meta.ra, stack.meta.dec, gaiaStars)
+      const curMjd = frames[Math.min(index, frames.length - 1)]?.mjd ?? 61041.0
+      drawGaia(ctx, nx, scale, stack.meta.ra, stack.meta.dec, gaiaStars, curMjd)
     }
 
     ctx.restore()
@@ -181,9 +182,12 @@ function drawGaia(
   centerRa: number,
   centerDec: number,
   stars: GaiaStar[],
+  frameMjd: number = 61041.0,
 ) {
   const px = SIZE / nx / scale
-  const cosDec = Math.cos((centerDec * Math.PI) / 180)
+  const cosDec = Math.max(Math.cos((centerDec * Math.PI) / 180), 1e-4)
+  // Gaia DR3 positions are at J2016.0 (MJD 57388.5); propagate along proper motion to frame observation date
+  const years = (frameMjd - 57388.5) / 365.25
 
   ctx.strokeStyle = 'rgba(0, 235, 255, 0.85)'
   ctx.fillStyle = 'rgba(0, 235, 255, 0.95)'
@@ -191,8 +195,13 @@ function drawGaia(
   ctx.font = '500 11px ui-monospace, SFMono-Regular, monospace'
 
   for (const s of stars) {
-    const e = (s.ra - centerRa) * 3600 * cosDec
-    const n = (s.dec - centerDec) * 3600
+    const pmra = s.pmra || 0
+    const pmdec = s.pmdec || 0
+    const ra_now = s.ra + ((pmra / 1000) * years) / 3600 / cosDec
+    const dec_now = s.dec + ((pmdec / 1000) * years) / 3600
+
+    const e = (ra_now - centerRa) * 3600 * cosDec
+    const n = (dec_now - centerDec) * 3600
     const x = SIZE / 2 - e * px
     const y = SIZE / 2 - n * px
 

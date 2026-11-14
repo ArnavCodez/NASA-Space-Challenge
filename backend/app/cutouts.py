@@ -202,17 +202,25 @@ def _cache_path(frame: dict, ra: float, dec: float, half: int):
 
 def _save(path, cut: dict):
     path.parent.mkdir(parents=True, exist_ok=True)
-    tmp = path.with_suffix(".tmp.npz")
-    np.savez_compressed(
-        tmp,
-        image=cut["image"],
-        flags=cut["flags"],
-        origin=np.array([cut["x0"], cut["y0"]]),
-        header=np.frombuffer(cut["header"].encode(), np.uint8),
-        wave=np.frombuffer(cut["wave"], np.uint8),
-        flag_names=np.frombuffer(json.dumps(cut["flag_names"]).encode(), np.uint8),
-    )
-    tmp.replace(path)
+    # Unique temp name to prevent collisions between parallel fetches
+    tmp = path.with_name(f"{path.stem}_{threading.get_ident()}_{time.time_ns()}.tmp.npz")
+    try:
+        np.savez_compressed(
+            tmp,
+            image=cut["image"],
+            flags=cut["flags"],
+            origin=np.array([cut["x0"], cut["y0"]]),
+            header=np.frombuffer(cut["header"].encode(), np.uint8),
+            wave=np.frombuffer(cut["wave"], np.uint8),
+            flag_names=np.frombuffer(json.dumps(cut["flag_names"]).encode(), np.uint8),
+        )
+        tmp.replace(path)
+    finally:
+        if tmp.exists():
+            try:
+                tmp.unlink()
+            except OSError:
+                pass
 
 
 def _load(path) -> dict:

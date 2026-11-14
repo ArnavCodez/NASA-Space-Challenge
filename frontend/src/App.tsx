@@ -48,8 +48,8 @@ export default function App({ embed = false }: { embed?: boolean }) {
   const [view, setView] = useState<View>(start.view ?? 'epoch')
   const [fov, setFov] = useState(start.fov ?? 3)
   const [refEpoch, setRefEpoch] = useState(start.ref ?? 0)
-  const [sort, setSort] = useState<'time' | 'wave'>('time')
-  const [showGaia, setShowGaia] = useState(false)
+  const [sort, setSort] = useState<'time' | 'wave'>(start.sort ?? 'time')
+  const [showGaia, setShowGaia] = useState(Boolean(start.gaia))
   const [gaiaStars, setGaiaStars] = useState<GaiaStar[]>([])
   const [neossatRecords, setNeossatRecords] = useState<NeossatRecord[]>([])
 
@@ -226,8 +226,21 @@ export default function App({ embed = false }: { embed?: boolean }) {
   }, [view])
 
   const query = useMemo(
-    () => (target ? { name: target.name, ra: target.ra, dec: target.dec, det, view, fov, ref: view === 'diff' ? refEpoch : undefined } : {}),
-    [target, det, view, fov, refEpoch],
+    () =>
+      target
+        ? {
+            name: target.name,
+            ra: target.ra,
+            dec: target.dec,
+            det,
+            view,
+            fov,
+            ref: view === 'diff' ? refEpoch : undefined,
+            sort: sort !== 'time' ? sort : undefined,
+            gaia: showGaia ? true : undefined,
+          }
+        : {},
+    [target, det, view, fov, refEpoch, sort, showGaia],
   )
 
   useEffect(() => {

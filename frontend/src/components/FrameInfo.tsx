@@ -63,6 +63,22 @@ export default function FrameInfo({ frame, manifest }: { frame?: FrameMeta; mani
       )}
       <dt>Noise</dt>
       <dd>{frame.noise !== undefined ? `${(frame.noise * 1000).toFixed(1)} kJy/sr` : '–'}</dd>
+      {frame.wave_warn && (
+        <div
+          style={{
+            gridColumn: '1 / -1',
+            background: 'rgba(255, 122, 107, 0.15)',
+            border: '1px solid var(--bad)',
+            borderRadius: '4px',
+            padding: '6px 8px',
+            fontSize: '0.8rem',
+            color: 'var(--bad)',
+            marginTop: '4px',
+          }}
+        >
+          ⚠️ <strong>Color Warning:</strong> {frame.wave_warn}
+        </div>
+      )}
     </dl>
   )
 }
