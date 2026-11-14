@@ -24,7 +24,7 @@ SKIP_RELEASES = {"qr2"}
 PIXEL = 6.15  # arcsec
 EPOCH = 2026.0  # moving targets get centred on where they were at this date
 
-WORKERS = int(os.environ.get("BLINK_WORKERS", 12))
+WORKERS = int(os.environ.get("BLINK_WORKERS", 16))
 SEARCH_TTL = 24 * 3600
 
 DETECTORS = {

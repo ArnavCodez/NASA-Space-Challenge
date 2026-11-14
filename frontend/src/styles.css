@@ -640,3 +640,85 @@ button.link:hover:not(:disabled) {
   border: 2px solid #5ae68c;
   border-radius: 50%;
 }
+
+.key.gaia {
+  background: none;
+  border: 1.5px solid #00ebff;
+  border-radius: 50%;
+}
+
+.zoom-controls {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  display: flex;
+  gap: 4px;
+  z-index: 10;
+}
+
+.zoom-controls button {
+  background: rgba(23, 24, 28, 0.85);
+  backdrop-filter: blur(4px);
+  border: 1px solid var(--line);
+  color: var(--text);
+  font-size: 13px;
+  padding: 4px 8px;
+  border-radius: 4px;
+  cursor: pointer;
+  line-height: 1;
+}
+
+.zoom-controls button:hover {
+  background: rgba(42, 44, 51, 0.95);
+  border-color: var(--accent);
+}
+
+.zoom-reset {
+  font-family: var(--mono);
+  font-size: 11px !important;
+}
+
+.blink-btn,
+.export-btn {
+  background: rgba(242, 184, 75, 0.12);
+  border-color: rgba(242, 184, 75, 0.4);
+  color: var(--accent);
+  font-size: 12px;
+  padding: 5px 9px;
+  white-space: nowrap;
+}
+
+.blink-btn:hover,
+.export-btn:hover:not(:disabled) {
+  background: rgba(242, 184, 75, 0.22);
+  border-color: var(--accent);
+}
+
+.neossat-badge {
+  background: rgba(40, 160, 220, 0.12);
+  border: 1px solid rgba(40, 160, 220, 0.3);
+  border-radius: 6px;
+  padding: 6px 10px;
+  font-size: 12px;
+  margin: 8px 0 0;
+  line-height: 1.4;
+}
+
+.footer-content {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.acknowledgement {
+  font-size: 12px;
+  color: var(--text);
+  line-height: 1.5;
+  opacity: 0.9;
+}
+
+.credits {
+  font-size: 11px;
+  color: var(--dim);
+  line-height: 1.4;
+}

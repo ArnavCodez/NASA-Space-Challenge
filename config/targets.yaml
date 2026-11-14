@@ -55,3 +55,36 @@
   det: D3
   fov: 6
   note: Mira variable with a roughly 245 day pulsation period.
+
+- name: Comet 3I/ATLAS
+  aliases: [3i/atlas, 3i, comet 3i, comet atlas, c/2024 s1]
+  ra: 133.81890825
+  dec: -7.247048
+  pmra: 0.0
+  pmdec: 0.0
+  plx: 0.0
+  det: D4
+  fov: 6
+  note: Interstellar comet observed by SPHEREx; reveals volatiles, dust, and rapid outgassing across 102 NIR bands.
+
+- name: (1) Ceres
+  aliases: [ceres, asteroid ceres, 1 ceres]
+  ra: 269.45207696
+  dec: 4.69336497
+  pmra: 0.0
+  pmdec: 0.0
+  plx: 0.0
+  det: D3
+  fov: 6
+  note: Dwarf planet and largest asteroid in the asteroid belt, monitored by NEOSSat and SPHEREx.
+
+- name: Betelgeuse
+  aliases: [betelgeuse, alpha ori, alf ori]
+  ra: 88.79291667
+  dec: 7.40694444
+  pmra: 27.54
+  pmdec: 11.30
+  plx: 6.55
+  det: D3
+  fov: 6
+  note: Red supergiant in Orion. Pulsating variable and nearby supernova candidate.

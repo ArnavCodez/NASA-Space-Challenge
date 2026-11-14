@@ -142,7 +142,23 @@ export type FrameQuery = {
   view: View
   fov: number
   ref: number
+  sort?: 'time' | 'wave'
   offset?: number
+}
+
+export type GaiaStar = {
+  id: string
+  ra: number
+  dec: number
+  mag: number
+  pmra: number
+  pmdec: number
+}
+
+export type NeossatRecord = {
+  obs_id: string
+  target: string
+  cadc_url: string
 }
 
 async function fail(r: Response): Promise<never> {
@@ -182,6 +198,12 @@ export async function getSpectrum(t: Target, cachedOnly: boolean, signal?: Abort
 
 export const getMotion = (t: Target, det: string, fov: number, signal?: AbortSignal) =>
   json<MotionFit>(`/api/motion?ra=${t.ra}&dec=${t.dec}&det=${det}&fov=${fov}&${pm(t)}`, signal)
+
+export const getGaiaStars = (ra: number, dec: number, fov: number, signal?: AbortSignal) =>
+  json<GaiaStar[]>(`/api/gaia?ra=${ra}&dec=${dec}&fov=${fov}`, signal)
+
+export const getNeossat = (ra: number, dec: number, fov: number, signal?: AbortSignal) =>
+  json<NeossatRecord[]>(`/api/neossat?ra=${ra}&dec=${dec}&fov=${fov}`, signal)
 
 // see backend/app/wire.py for the layout
 export function decode(buf: ArrayBuffer): Stack {

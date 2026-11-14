@@ -24,17 +24,26 @@ def presets() -> list[dict]:
 
 
 def parse(text: str) -> tuple[float, float] | None:
-    parts = text.replace(",", " ").split()
+    # Strip common coordinate prefixes: "RA", "Dec", "R.A.", "Decl.", "J2000", etc.
+    s = re.sub(r'(?i)\b(ra|dec|declination|right\s*ascension|j2000|icrs|fk5)[:=\s]*', ' ', text)
+    # Normalize unicode astronomical symbols and quotes: ° -> d, ′ -> m, ″ -> s, ' -> m, " -> s
+    s = s.replace('°', 'd ').replace('′', 'm ').replace('″', 's ').replace('"', 's ').replace("'", 'm ')
+    s = re.sub(r'(?i)\bdeg\b', ' ', s)
+    s = s.replace(',', ' ')
+    parts = s.split()
     if len(parts) < 2:
         return None
     try:
         if len(parts) == 2 and all(re.fullmatch(r"[+-]?\d+(\.\d*)?", p) for p in parts):
             c = SkyCoord(float(parts[0]), float(parts[1]), unit="deg")
         else:
-            c = SkyCoord(" ".join(parts), unit=(u.hourangle, u.deg))
-    except ValueError:
+            try:
+                c = SkyCoord(" ".join(parts), unit=(u.hourangle, u.deg))
+            except Exception:
+                c = SkyCoord(" ".join(parts), unit="deg")
+        return float(c.ra.deg), float(c.dec.deg)
+    except Exception:
         return None
-    return float(c.ra.deg), float(c.dec.deg)
 
 
 def propagate(ra, dec, pmra, pmdec, years):

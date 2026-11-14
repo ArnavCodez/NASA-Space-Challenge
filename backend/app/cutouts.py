@@ -39,7 +39,11 @@ _pool = ThreadPoolExecutor(settings.WORKERS)
 
 def _session() -> requests.Session:
     if not hasattr(_local, "session"):
-        _local.session = requests.Session()
+        s = requests.Session()
+        adapter = requests.adapters.HTTPAdapter(pool_connections=32, pool_maxsize=32, max_retries=2)
+        s.mount("https://", adapter)
+        s.mount("http://", adapter)
+        _local.session = s
     return _local.session
 
 
@@ -62,7 +66,7 @@ def _split_parts(body: bytes, headers) -> tuple[list[tuple[int, bytes]], int]:
 
 
 def _get(url: str, spec: list[str]) -> tuple[list[tuple[int, bytes]], int]:
-    r = _session().get(url, headers={"Range": "bytes=" + ",".join(spec)}, stream=True, timeout=60)
+    r = _session().get(url, headers={"Range": "bytes=" + ",".join(spec)}, stream=True, timeout=25)
     with r:
         if r.status_code != 206:
             raise IOError(f"{r.status_code} for range request on {url}")

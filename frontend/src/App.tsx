@@ -1,12 +1,16 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
   getFrames,
+  getGaiaStars,
   getMotion,
+  getNeossat,
   getSpectrum,
   getTargets,
   search,
+  type GaiaStar,
   type Manifest,
   type MotionFit,
+  type NeossatRecord,
   type Spectrum,
   type Stack,
   type Target,
@@ -44,6 +48,10 @@ export default function App({ embed = false }: { embed?: boolean }) {
   const [view, setView] = useState<View>(start.view ?? 'epoch')
   const [fov, setFov] = useState(start.fov ?? 3)
   const [refEpoch, setRefEpoch] = useState(start.ref ?? 0)
+  const [sort, setSort] = useState<'time' | 'wave'>('time')
+  const [showGaia, setShowGaia] = useState(false)
+  const [gaiaStars, setGaiaStars] = useState<GaiaStar[]>([])
+  const [neossatRecords, setNeossatRecords] = useState<NeossatRecord[]>([])
 
   const [manifest, setManifest] = useState<Manifest | null>(null)
   const [stack, setStack] = useState<Stack | null>(null)
@@ -100,7 +108,7 @@ export default function App({ embed = false }: { embed?: boolean }) {
     setManifest(null)
     setStack(null)
     setError('')
-    setStatus('Searching the SPHEREx archive. A spot nobody has asked for yet can take a minute.')
+    setStatus('Searching the SPHEREx archive at IRSA...')
     search(target.ra, target.dec, ctl.signal)
       .then((m) => {
         setManifest(m)
@@ -137,8 +145,8 @@ export default function App({ embed = false }: { embed?: boolean }) {
     }
     const ctl = new AbortController()
     setError('')
-    setStatus(`Fetching ${det} exposures from IRSA (${n} cover this spot). First load of a view takes 10–60 s.`)
-    getFrames({ ra: target.ra, dec: target.dec, det, view, fov, ref }, ctl.signal)
+    setStatus(`Fetching ${det} cutouts from IRSA (${Math.min(n, 24)} frames)...`)
+    getFrames({ ra: target.ra, dec: target.dec, det, view, fov, ref, sort }, ctl.signal)
       .then((s) => {
         setStack(s)
         setIndex((i) => Math.min(i, Math.max(s.meta.n - 1, 0)))
@@ -151,7 +159,31 @@ export default function App({ embed = false }: { embed?: boolean }) {
         setError(e.message)
       })
     return () => ctl.abort()
-  }, [manifest, det, view, fov, ref])
+  }, [manifest, det, view, fov, ref, sort])
+
+  // fetch Gaia DR3 stars when overlay is toggled on
+  useEffect(() => {
+    if (!target || !showGaia) {
+      setGaiaStars([])
+      return
+    }
+    const ctl = new AbortController()
+    getGaiaStars(target.ra, target.dec, fov, ctl.signal)
+      .then(setGaiaStars)
+      .catch(() => {})
+    return () => ctl.abort()
+  }, [target?.ra, target?.dec, fov, showGaia])
+
+  // check CADC for NEOSSat observations in this sky field
+  useEffect(() => {
+    if (!target) return
+    const ctl = new AbortController()
+    setNeossatRecords([])
+    getNeossat(target.ra, target.dec, fov, ctl.signal)
+      .then(setNeossatRecords)
+      .catch(() => {})
+    return () => ctl.abort()
+  }, [target?.ra, target?.dec, fov])
 
   // spectra are slow to build, so only show one here if it's already cached; otherwise offer a button
   useEffect(() => {
@@ -237,6 +269,8 @@ export default function App({ embed = false }: { embed?: boolean }) {
             showFlags={showFlags}
             smooth={smooth}
             motion={showTrack && target?.pmra !== undefined ? { pmra: target.pmra, pmdec: target.pmdec ?? 0, epoch: target.epoch ?? 2026 } : undefined}
+            gaiaStars={gaiaStars}
+            showGaia={showGaia}
           />
         ) : (
           <div className="empty">{status || error || 'Pick a target to start.'}</div>
@@ -323,7 +357,7 @@ export default function App({ embed = false }: { embed?: boolean }) {
         </div>
 
         <aside>
-          {target && <TargetCard target={target} />}
+          {target && <TargetCard target={target} neossat={neossatRecords} />}
 
           <Controls
             view={view}
@@ -339,6 +373,10 @@ export default function App({ embed = false }: { embed?: boolean }) {
             epochs={manifest?.epochs ?? []}
             refEpoch={refEpoch}
             setRefEpoch={setRefEpoch}
+            sort={sort}
+            setSort={setSort}
+            showGaia={showGaia}
+            setShowGaia={setShowGaia}
             curve={curve}
             setCurve={setCurve}
             cmap={cmap}
@@ -367,8 +405,14 @@ export default function App({ embed = false }: { embed?: boolean }) {
       </main>
 
       <footer>
-        Images: NASA SPHEREx Level 2 spectral images (DR1 + weekly quick releases) from NASA/IPAC IRSA. Names resolved with
-        CDS Sesame. Built for NASA Space Apps 2026 by team Skill-Issue.
+        <div className="footer-content">
+          <p className="acknowledgement">
+            <b>SPHEREx Citation:</b> &ldquo;This publication makes use of data products from the Spectro-Photometer for the History of the Universe, Epoch of Reionization and Ices Explorer (SPHEREx), which is a joint project of the Jet Propulsion Laboratory and the California Institute of Technology, and is funded by the National Aeronautics and Space Administration.&rdquo;
+          </p>
+          <p className="credits">
+            Images: NASA SPHEREx Level 2 spectral images (DR1 + weekly quick releases) from NASA/IPAC IRSA. Star catalogs: ESA Gaia DR3 via CDS/VizieR. Asteroid tracking: CSA NEOSSat via CADC. Names resolved with CDS Sesame. Built for NASA Space Apps 2026 by team Skill-Issue.
+          </p>
+        </div>
       </footer>
     </div>
   )

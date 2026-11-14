@@ -50,9 +50,24 @@ Preset positions, proper motions and parallaxes are from SIMBAD (J2000, epoch
 the proper motion to 2026.0 for centring, and to each exposure's own date for
 photometry.
 
+## Star Catalogs and Asteroid Cross-Matching
+
+- **Gaia DR3:** Known background stars are queried on the fly from the ESA Gaia DR3
+  catalog (`gaiadr3.gaia_source`) via the ESA Gaia Table Access Protocol (TAP) service.
+  Stars are rendered as subtle overlays with their G-band magnitudes, allowing
+  instant differentiation between fixed stellar sources and moving/transient targets.
+- **NEOSSat (CSA):** Asteroid and space debris observations in the target field are
+  cross-matched against the Canadian Space Agency's NEOSSat archive via CADC Argus
+  CAOM-TAP (`https://ws.cadc-ccda.hia-iha.nrc-cnrc.gc.ca/argus/sync`).
+
 ## Acknowledgements
 
-SPHEREx is a NASA mission. Caltech leads it and JPL manages it. IRSA is funded
-by NASA and operated by Caltech/IPAC. Please cite SPHEREx and IRSA as their
-data policies ask if you use anything this tool produces in a publication. Name
-resolution uses the CDS Sesame service (CDS, Strasbourg).
+"This publication makes use of data products from the Spectro-Photometer for the
+History of the Universe, Epoch of Reionization and Ices Explorer (SPHEREx), which
+is a joint project of the Jet Propulsion Laboratory and the California Institute of
+Technology, and is funded by the National Aeronautics and Space Administration."
+
+IRSA is funded by NASA and operated by Caltech/IPAC. Star catalogs are from ESA Gaia.
+Asteroid observations are from the Canadian Space Agency (CSA) NEOSSat mission served
+by the Canadian Astronomy Data Centre (CADC). Name resolution uses the CDS Sesame
+service (CDS, Strasbourg). Built with Astropy, NumPy, SciPy, PyVO, FastAPI and React.

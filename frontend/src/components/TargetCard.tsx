@@ -1,7 +1,7 @@
-import type { Target } from '../api'
+import type { NeossatRecord, Target } from '../api'
 import { dms, hms } from '../format'
 
-export default function TargetCard({ target }: { target: Target }) {
+export default function TargetCard({ target, neossat = [] }: { target: Target; neossat?: NeossatRecord[] }) {
   const pm = Math.hypot(target.pmra ?? 0, target.pmdec ?? 0)
   const rate = pm >= 1000 ? `${(pm / 1000).toFixed(1)}″` : `${pm.toFixed(0)} mas`
 
@@ -18,6 +18,14 @@ export default function TargetCard({ target }: { target: Target }) {
         </p>
       )}
       {target.note && <p className="note">{target.note}</p>}
+      {neossat.length > 0 && (
+        <p className="neossat-badge">
+          🇨🇦 <b>NEOSSat (CSA):</b> {neossat.length} CADC observation{neossat.length > 1 ? 's' : ''} in field.{' '}
+          <a href={neossat[0].cadc_url} target="_blank" rel="noreferrer">
+            CADC Archive ↗
+          </a>
+        </p>
+      )}
     </div>
   )
 }

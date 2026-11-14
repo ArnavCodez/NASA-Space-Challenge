@@ -6,7 +6,7 @@ from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.responses import FileResponse, Response
 from fastapi.staticfiles import StaticFiles
 
-from . import coords, measure, settings, views
+from . import coords, gaia, measure, neossat, settings, views
 from .search import search
 
 app = FastAPI(title="SPHEREx Blink")
@@ -71,7 +71,8 @@ def frames(
     fov: int = 6,
     ref: int = 0,
     offset: int = Query(0, ge=0),
-    limit: int = Query(120, ge=1, le=200),
+    limit: int = Query(24, ge=1, le=200),
+    sort: str = Query("time", pattern="^(time|wave)$"),
 ):
     ra, dec = _pos(ra, dec)
     if det not in settings.DETECTORS:
@@ -81,10 +82,22 @@ def frames(
     if fov not in settings.FOVS:
         raise HTTPException(400, f"fov must be one of {list(settings.FOVS)}")
     try:
-        body = views.stack(ra, dec, fov, det, view, ref, offset, limit)
+        body = views.stack(ra, dec, fov, det, view, ref, offset, limit, sort)
     except UPSTREAM_ERRORS as e:
         raise HTTPException(502, f"IRSA request failed: {e}")
     return Response(body, media_type="application/octet-stream")
+
+
+@app.get("/api/gaia")
+def gaia_stars(ra: float, dec: float, fov: float = 6.0):
+    ra, dec = _pos(ra, dec)
+    return gaia.get_gaia_stars(ra, dec, fov)
+
+
+@app.get("/api/neossat")
+def neossat_records(ra: float, dec: float, fov: float = 6.0):
+    ra, dec = _pos(ra, dec)
+    return neossat.get_neossat_records(ra, dec, fov)
 
 
 @app.get("/api/spectrum")

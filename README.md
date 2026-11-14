@@ -18,8 +18,16 @@ team Skill-Issue (Delhi).
     brightness changes.
   - *Difference*: each visit minus a reference visit. A moving object shows
     up as a dark/light pair.
-  - *Frames*: every single exposure in time order.
+  - *Frames*: every single exposure in time order or sorted by wavelength.
   - *Static removed*: single exposures minus the median sky.
+- **Sort by Observation Date or Wavelength (LVF)**: In raw frames mode, toggle between
+  chronological order (to spot movement) and wavelength order (to inspect spectral color transitions).
+- **Gaia DR3 Star Overlay**: Overlay known stars from ESA Gaia DR3 so true solar system movers
+  and unknown transients stand out against background stars.
+- **CSA NEOSSat Cross-Matching**: Detects overlapping asteroid/comet tracking data from the
+  Canadian Space Agency's NEOSSat space telescope via CADC Argus TAP.
+- **Blink Comparator & Pan/Zoom**: A/B toggle between frames (Clyde Tombaugh mode), keyboard
+  shortcuts (Space to pause, arrows to step), interactive pan & zoom, and 1-click WebM clip export.
 - **Pick any of the six detectors** (0.75–5 µm) and a 3, 6, 12 or 20 arcmin field.
 - **Spectrum from every exposure.** SPHEREx's filters change wavelength across
   the detector, so each exposure sees the target at a slightly different
@@ -42,6 +50,8 @@ team Skill-Issue (Delhi).
 | Epsilon Indi B | D4, 6′ | Brown dwarf pair. Its brightness swings with wavelength inside D4 (methane band at 3.3 µm). |
 | RW Aurigae | D3, 6′ | Young star whose disk keeps dimming it. Compare visits in the spectrum. |
 | R Draconis | D3, 6′ | Mira variable near the north ecliptic pole, so it has many more visits than anything else. |
+| Comet 3I/ATLAS | D4, 6′ | Interstellar comet; reveals volatile sublimation and outgassing across 102 NIR channels. |
+| (1) Ceres | D3, 6′ | Largest asteroid & dwarf planet in the asteroid belt, cross-matched with CSA NEOSSat. |
 
 ## How it works
 
@@ -135,6 +145,8 @@ redeployed. `GET /api/search?ra=..&dec=..&fresh=true` forces a fresh query, and
 | `GET /api/frames?ra&dec&det&view&fov&ref` | Image stack in the SPXF binary format |
 | `GET /api/spectrum?ra&dec&pmra&pmdec` | Forced photometry in every exposure (JSON) |
 | `GET /api/motion?ra&dec&det&fov&pmra&pmdec` | Per-visit centroids and fitted proper motion |
+| `GET /api/gaia?ra&dec&fov` | Gaia DR3 stars in the field with G-band magnitudes |
+| `GET /api/neossat?ra&dec&fov` | CADC CAOM-TAP observations for CSA NEOSSat |
 
 ## Limitations
 

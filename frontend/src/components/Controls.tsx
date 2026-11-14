@@ -28,6 +28,10 @@ type Props = {
   epochs: Epoch[]
   refEpoch: number
   setRefEpoch: (e: number) => void
+  sort: 'time' | 'wave'
+  setSort: (s: 'time' | 'wave') => void
+  showGaia: boolean
+  setShowGaia: (s: boolean) => void
   curve: Curve
   setCurve: (c: Curve) => void
   cmap: Cmap
@@ -68,6 +72,16 @@ export default function Controls(p: Props) {
                 {e.label}
               </option>
             ))}
+          </select>
+        </label>
+      )}
+
+      {(p.view === 'raw' || p.view === 'sub') && (
+        <label className="row">
+          <span>Sort frames</span>
+          <select value={p.sort} onChange={(e) => p.setSort(e.target.value as 'time' | 'wave')}>
+            <option value="time">Observation Date 📅</option>
+            <option value="wave">Wavelength (LVF) 🌈</option>
           </select>
         </label>
       )}
@@ -141,6 +155,10 @@ export default function Controls(p: Props) {
         <label className="check">
           <input type="checkbox" checked={p.smooth} onChange={(e) => p.setSmooth(e.target.checked)} />
           Smooth pixels
+        </label>
+        <label className="check">
+          <input type="checkbox" checked={p.showGaia} onChange={(e) => p.setShowGaia(e.target.checked)} />
+          Overlay Gaia DR3 stars <i className="key gaia" />
         </label>
         {p.canTrack && (
           <label className="check">

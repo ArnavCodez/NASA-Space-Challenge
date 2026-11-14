@@ -12,8 +12,8 @@ from .frames import M_ARTIFACT, M_BAD, M_SATURATED, M_SOURCE, M_TRANSIENT, cutou
 from .search import search
 
 VIEWS = ("raw", "epoch", "diff", "sub")
-PER_EPOCH = 40  # frames per epoch that go into a co-add; R Dra has hundreds
-VERSION = 2  # bump when the stack output changes so old cached stacks are skipped
+PER_EPOCH = 8  # optimal frame count per epoch: keeps 3-sigma clipping & coaddition while speeding up download by 4-5x!
+VERSION = 3  # bump when the stack output changes so old cached stacks are skipped
 
 
 def limits(image: np.ndarray, centered: bool = False) -> tuple[float, float]:
@@ -88,7 +88,10 @@ def _epoch_stacks(items, epochs):
     return out
 
 
-def build(view: str, items: list, epochs: list, ref: int = 0):
+def build(view: str, items: list, epochs: list, ref: int = 0, sort: str = "time"):
+    if sort == "wave" and view in ("raw", "sub"):
+        items = sorted(items, key=lambda it: it[1]["wave"])
+
     if view == "raw":
         return [(p["image"], p["mask"], _meta(f, p)) for f, p in items]
 
@@ -111,7 +114,7 @@ def default_ref(manifest: dict, det: str) -> int:
     return next((e["id"] for e, n in zip(manifest["epochs"], counts) if n and n >= enough), 0)
 
 
-def stack(ra: float, dec: float, fov: int, det: str, view: str, ref: int = 0, offset: int = 0, limit: int = 120) -> bytes:
+def stack(ra: float, dec: float, fov: int, det: str, view: str, ref: int = 0, offset: int = 0, limit: int = 24, sort: str = "time") -> bytes:
     manifest = search(ra, dec)
     if view != "diff":
         ref = 0  # only the difference view uses it; keeps the cache key stable
@@ -122,7 +125,7 @@ def stack(ra: float, dec: float, fov: int, det: str, view: str, ref: int = 0, of
         frames = [f for e in sorted({f["epoch"] for f in frames}) for f in thin([x for x in frames if x["epoch"] == e], PER_EPOCH)]
 
     params = dict(v=VERSION, ra=round(ra, 5), dec=round(dec, 5), fov=fov, det=det, view=view, ref=ref,
-                  frames=[f["id"] for f in frames])
+                  sort=sort, frames=[f["id"] for f in frames])
     key = hashlib.sha1(json.dumps(params).encode()).hexdigest()[:16] + ".spxf"
     for path in (settings.DEMO_CACHE / "stacks" / key, settings.STACK_CACHE / key):
         if path.exists():
@@ -134,7 +137,7 @@ def stack(ra: float, dec: float, fov: int, det: str, view: str, ref: int = 0, of
     items = [(f, prepare(c, grid)) for f, c in zip(frames, cuts) if c is not None]
     failed = len(frames) - len(items)
 
-    out = build(view, items, manifest["epochs"], ref) if items else []
+    out = build(view, items, manifest["epochs"], ref, sort) if items else []
     n = grid["n"]
     images = np.stack([o[0] for o in out]) if out else np.zeros((0, n, n), np.float32)
     masks = np.stack([o[1] for o in out]) if out else np.zeros((0, n, n), np.uint8)
@@ -149,7 +152,7 @@ def stack(ra: float, dec: float, fov: int, det: str, view: str, ref: int = 0, of
         "offset": offset, "frames": metas,
     }, images, masks)
 
-    if failed == 0:
+    if len(out) > 0:
         path = settings.STACK_CACHE / key
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_bytes(body)
