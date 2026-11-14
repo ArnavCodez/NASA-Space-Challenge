@@ -25,6 +25,8 @@ PIXEL = 6.15  # arcsec
 EPOCH = 2026.0  # moving targets get centred on where they were at this date
 
 WORKERS = int(os.environ.get("BLINK_WORKERS", 16))
+# serverless hosts refuse big responses (Vercel: 4.5 MB); 0 means no cap
+MAX_BYTES = int(os.environ.get("BLINK_MAX_BYTES", 0))
 SEARCH_TTL = 24 * 3600
 
 DETECTORS = {

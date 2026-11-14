@@ -133,6 +133,9 @@ def stack(ra: float, dec: float, fov: int, det: str, view: str, ref: int = 0, of
         ref = 0  # only the difference view uses it; keeps the cache key stable
     frames = [f for f in manifest["frames"] if f["det"] == det]
     if view in ("raw", "sub"):
+        if settings.MAX_BYTES:
+            n = int(round(fov * 60 / settings.FOVS[fov])) | 1
+            limit = max(1, min(limit, settings.MAX_BYTES // (n * n * 5)))  # float32 pixel + uint8 mask
         if offset == 0 and len(frames) > limit:
             frames = thin(frames, limit)
         else:
